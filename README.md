@@ -5,7 +5,7 @@ A lightweight, high-speed internal desktop utility designed for medical receptio
 Live demo: https://quick-clinic-lilac.vercel.app/
 
 ## 💡 The Inspiration
-This project was born out of real-world observation. While visiting a specialist surgical clinic in Melbourne, I noticed the front-desk reception staff frequently had to stop their workflow to flip through a physical binder of paper forms and complex insurance fee sheets. 
+This project was born out of real-world observation. I noticed the front-desk reception staff frequently had to stop their workflow to flip through a physical binder of paper forms and complex insurance fee sheets. 
 
 Large enterprise hospital systems have built-in tools for this, but small independent practices are often left stranded using manual folders or fragmented spreadsheets. I built **QuickClinic** to solve this specific "front-desk friction" by combining local specialist directories, MBS item rebates, out-of-pocket patient gaps, and specific desk protocols into a single, instant search interface.
 
