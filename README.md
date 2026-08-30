@@ -2,6 +2,8 @@
 
 A lightweight, high-speed internal desktop utility designed for medical receptionists and specialist practices to eliminate physical paper binders, streamline fee lookups, and centralize custom practice protocols.
 
+Live demo: https://quick-clinic-lilac.vercel.app/
+
 ## 💡 The Inspiration
 This project was born out of real-world observation. While visiting a specialist surgical clinic in Melbourne, I noticed the front-desk reception staff frequently had to stop their workflow to flip through a physical binder of paper forms and complex insurance fee sheets. 
 
