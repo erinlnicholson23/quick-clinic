@@ -77,7 +77,7 @@ export default function App() {
             }}
             placeholder="Type a procedure, hospital, tag (e.g., 'scope', 'Epworth', '30473')..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.value || e.target.value)}
           />
           <span style={{ position: 'absolute', left: '16px', top: '18px', color: '#9ca3af' }}>🔍</span>
         </div>
