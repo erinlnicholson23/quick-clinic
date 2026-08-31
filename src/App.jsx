@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = "https://supabase.co";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_LONG_ANON_PUBLIC_KEY_HERE";
+const SUPABASE_URL = "https://whoxcaqhgctgwutlbfeh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_yCkB2G6aszoFwhml8iFXlg_MyBM7c_U";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const INITIAL_CLINIC_DATA = [
