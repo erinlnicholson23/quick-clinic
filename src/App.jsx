@@ -83,12 +83,10 @@ export default function App() {
             </button>
           )}
         </header>
-
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
           <button onClick={() => { setActiveTab("internal"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "internal" ? '#1e3a8a' : '#ffffff', color: activeTab === "internal" ? '#ffffff' : '#374151' }}>📋 Practice Custom Notes</button>
           <button onClick={() => { setActiveTab("mbs_api"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "mbs_api" ? '#059669' : '#ffffff', color: activeTab === "mbs_api" ? '#ffffff' : '#374151' }}>🌐 Live Cloud MBS Registry</button>
         </div>
-
         {showForm && activeTab === "internal" && (
           <form onSubmit={handleSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
             <div style={{ marginBottom: '12px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold' }}>Category</label>
@@ -118,7 +116,6 @@ export default function App() {
           <input type="text" style={{ width: '100%', padding: '16px', paddingLeft: '44px', borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '18px', boxSizing: 'border-box' }} placeholder={activeTab === "internal" ? "Search practice notes..." : "Query 6,000+ live procedures (e.g. skin, knee, cardiac)..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           <span style={{ position: 'absolute', left: '16px', top: '18px' }}>🔍</span>
         </div>
-
         {activeTab === "internal" ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredInternalData.map((item) => (
