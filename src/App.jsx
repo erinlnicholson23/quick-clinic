@@ -1,37 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// 🔑 REPLACE THIS LINE WITH YOUR REAL COPIED ANON KEY FROM SUPABASE
+const SUPABASE_URL = "https://whoxcaqhgctgwutlbfeh.supabase.co"; 
+const SUPABASE_ANON_KEY = "sb_publishable_yCkB2G6aszoFwhml8iFXlg_MyBM7c_U";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const INITIAL_CLINIC_DATA = [
   {
-    id: "item_01",
-    type: "procedure_fee",
-    keyword_tags: ["gastroscopy", "endoscopy", "scope", "stomach", "jason", "winnett"],
-    title: "Gastroscopy (Diagnostic)",
-    mbs_item_number: "30473",
-    clinic_fee: 650.00,
-    medicare_rebate: 194.25,
-    approx_private_health_gap: 250.00,
-    notes: "Ensure patient has been fasting for 6 hours. Inform them of separate private hospital bed fees."
+    id: "item_01", type: "procedure_fee", keyword_tags: ["gastroscopy", "scope", "jason", "winnett"],
+    title: "Gastroscopy (Diagnostic)", mbs_item_number: "30473", clinic_fee: 650, medicare_rebate: 194.25, approx_private_health_gap: 250,
+    notes: "Ensure patient has been fasting for 6 hours. Inform them of separate theater fees."
   },
   {
-    id: "item_02",
-    type: "procedure_fee",
-    keyword_tags: ["colonoscopy", "bowel", "scope", "jason", "winnett"],
-    title: "Colonoscopy (Fibreoptic)",
-    mbs_item_number: "32222",
-    clinic_fee: 850.00,
-    medicare_rebate: 345.10,
-    approx_private_health_gap: 300.00,
-    notes: "Requires Plenvu bowel prep kit instructions to be printed and handed to patient at the desk."
-  },
-  {
-    id: "item_03",
-    type: "place_and_form",
-    keyword_tags: ["epworth", "richmond", "hospital", "admission", "surgery"],
-    title: "Epworth Hospital Richmond (Admissions)",
-    address: "89 Bridge Rd, Richmond VIC 3121",
-    required_forms: ["Epworth Digital Admission Form v4", "Surgical Consent Sheet"],
-    fax_number: "(03) 9426 6666",
-    notes: "Operating theater list is usually Tuesday mornings here. Patient paperwork must be submitted 48h prior."
+    id: "item_02", type: "procedure_fee", keyword_tags: ["colonoscopy", "scope", "jason", "winnett"],
+    title: "Colonoscopy (Fibreoptic)", mbs_item_number: "32222", clinic_fee: 850, medicare_rebate: 345.10, approx_private_health_gap: 300,
+    notes: "Requires Plenvu bowel prep kit instructions to be handed to patient at the desk."
   }
 ];
 
@@ -40,7 +24,6 @@ export default function App() {
   const [clinicData, setClinicData] = useState(INITIAL_CLINIC_DATA);
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
-
   const [apiResults, setApiResults] = useState([]);
   const [apiLoading, setApiLoading] = useState(false);
 
@@ -57,68 +40,28 @@ export default function App() {
   const [tags, setTags] = useState("");
 
   useEffect(() => {
-    if (activeTab !== "mbs_api" || searchQuery.trim() === "") {
-      setApiResults([]);
-      return;
-    }
+    if (activeTab !== "mbs_api" || searchQuery.trim() === "") { setApiResults([]); return; }
     setApiLoading(true);
-    const delayDebounceFn = setTimeout(() => {
-      const mockApiResponse = [
-        {
-          mbs_item: "30473",
-          category: "Therapeutic Procedures",
-          description: "Gastroscopy, insertion of a flexible fiberoptic endoscope into the stomach for diagnostic inspection.",
-          schedule_fee: 194.25,
-          benefit_85: 165.15
-        },
-        {
-          mbs_item: "32222",
-          category: "Therapeutic Procedures",
-          description: "Colonoscopy, fiberoptic, to examine the large bowel to the caecum, for diagnostic investigation.",
-          schedule_fee: 345.10,
-          benefit_85: 293.35
-        },
-        {
-          mbs_item: "31575",
-          category: "General Surgical Procedures",
-          description: "Laparoscopic sleeve gastrectomy, for treatment of clinically severe obesity.",
-          schedule_fee: 865.30,
-          benefit_85: 781.10
-        }
-      ].filter(item => 
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        item.mbs_item.includes(searchQuery)
-      );
-      setApiResults(mockApiResponse);
-      setApiLoading(false);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        let { data, error } = await supabase.from('mbs_procedures').select('*')
+          .or(`description.ilike.%${searchQuery}%,mbs_item.like.%${searchQuery}%`).limit(20);
+        if (error) throw error;
+        setApiResults(data || []);
+      } catch (err) { console.error("Database block:", err.message);
+      } finally { setApiLoading(false); }
     }, 400);
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, activeTab]);
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newItem = {
-      id: `custom_${Date.now()}`,
-      type: formType,
-      title: title,
-      notes: notes,
-      keyword_tags: tags.split(',').map(t => t.trim().toLowerCase())
-    };
-
+    const newItem = { id: `custom_${Date.now()}`, type: formType, title, notes, keyword_tags: tags.split(',').map(t => t.trim().toLowerCase()) };
     if (formType === "procedure_fee") {
-      newItem.mbs_item_number = mbsNumber;
-      newItem.clinic_fee = parseFloat(fee) || 0;
-      newItem.medicare_rebate = parseFloat(rebate) || 0;
-      newItem.approx_private_health_gap = parseFloat(gap) || 0;
-    } else {
-      newItem.address = address;
-      newItem.fax_number = fax;
-      newItem.required_forms = forms.split(',').map(f => f.trim()).filter(f => f !== "");
-    }
-
+      newItem.mbs_item_number = mbsNumber; newItem.clinic_fee = parseFloat(fee) || 0;
+      newItem.medicare_rebate = parseFloat(rebate) || 0; newItem.approx_private_health_gap = parseFloat(gap) || 0;
+    } else { newItem.address = address; newItem.fax_number = fax; newItem.required_forms = forms.split(',').map(f => f.trim()).filter(f => f !== ""); }
     setClinicData([newItem, ...clinicData]);
-    setTitle(""); setMbsNumber(""); setFee(""); setRebate(""); setGap("");
-    setAddress(""); setFax(""); setForms(""); setNotes(""); setTags("");
-    setShowForm(false);
+    setTitle(""); setMbsNumber(""); setFee(""); setRebate(""); setGap(""); setAddress(""); setFax(""); setForms(""); setNotes(""); setTags(""); setShowForm(false);
   };
 
   const filteredInternalData = clinicData.filter(item => {
@@ -129,11 +72,10 @@ export default function App() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '24px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        
         <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: 0 }}>⚡ QuickClinic</h1>
-            <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Internal Reference Desk Utility</p>
+            <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Full-Stack Cloud Reference Utility</p>
           </div>
           {activeTab === "internal" && (
             <button onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
@@ -143,8 +85,8 @@ export default function App() {
         </header>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
-          <button onClick={() => { setActiveTab("internal"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "internal" ? '#1e3a8a' : '#e5e7eb', color: activeTab === "internal" ? '#ffffff' : '#374151' }}>📋 Practice Custom Notes</button>
-          <button onClick={() => { setActiveTab("mbs_api"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "mbs_api" ? '#059669' : '#e5e7eb', color: activeTab === "mbs_api" ? '#ffffff' : '#374151' }}>🌐 Live MBS Registry</button>
+          <button onClick={() => { setActiveTab("internal"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "internal" ? '#1e3a8a' : '#ffffff', color: activeTab === "internal" ? '#ffffff' : '#374151' }}>📋 Practice Custom Notes</button>
+          <button onClick={() => { setActiveTab("mbs_api"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "mbs_api" ? '#059669' : '#ffffff', color: activeTab === "mbs_api" ? '#ffffff' : '#374151' }}>🌐 Live Cloud MBS Registry</button>
         </div>
 
         {showForm && activeTab === "internal" && (
@@ -164,17 +106,16 @@ export default function App() {
               <div style={{ marginBottom: '12px' }}>
                 <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', boxSizing: 'border-box' }} />
                 <input type="text" placeholder="Fax" value={fax} onChange={(e) => setFax(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', boxSizing: 'border-box' }} />
-                <input type="text" placeholder="Forms (separated by commas)" value={forms} onChange={(e) => setForms(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Forms" value={forms} onChange={(e) => setForms(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
               </div>
             )}
-            <input type="text" placeholder="Tags (comma separated)" value={tags} onChange={(e) => setTags(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '12px', boxSizing: 'border-box' }} />
+            <input type="text" placeholder="Tags" value={tags} onChange={(e) => setTags(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '12px', boxSizing: 'border-box' }} />
             <textarea placeholder="Desk Notes" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ width: '100%', padding: '8px', height: '60px', boxSizing: 'border-box' }}></textarea>
             <button type="submit" style={{ width: '100%', backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', marginTop: '12px' }}>💾 Save to Dashboard</button>
           </form>
         )}
-
         <div style={{ position: 'relative', marginBottom: '24px' }}>
-          <input type="text" style={{ width: '100%', padding: '16px', paddingLeft: '44px', borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '18px', boxSizing: 'border-box' }} placeholder={activeTab === "internal" ? "Search practice notes..." : "Query national MBS registry..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <input type="text" style={{ width: '100%', padding: '16px', paddingLeft: '44px', borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '18px', boxSizing: 'border-box' }} placeholder={activeTab === "internal" ? "Search practice notes..." : "Query 6,000+ live procedures (e.g. skin, knee, cardiac)..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           <span style={{ position: 'absolute', left: '16px', top: '18px' }}>🔍</span>
         </div>
 
@@ -199,21 +140,24 @@ export default function App() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {apiLoading && <p style={{ textAlign: 'center' }}>Querying registry servers...</p>}
+            {apiLoading && <p style={{ textAlign: 'center', color: '#6b7280' }}>⚡ Streaming from your live Supabase cloud database...</p>}
             {apiResults.map((item) => (
-              <div key={item.mbs_item} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px' }}>
-                <strong>🟢 MBS Item #{item.mbs_item}</strong>
-                <p style={{ fontSize: '14px', margin: '8px 0' }}>{item.description}</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '12px', backgroundColor: '#f9fafb', fontSize: '13px' }}>
-                  <div>Fee: ${item.schedule_fee.toFixed(2)}</div>
-                  <div>Rebate (85%): ${item.benefit_85.toFixed(2)}</div>
+              <div key={item.id} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <strong style={{ color: '#059669' }}>🟢 Cloud Registry Match</strong>
+                  <strong style={{ fontFamily: 'monospace' }}>MBS Item #{item.mbs_item}</strong>
+                </div>
+                <p style={{ fontSize: '14px', margin: '8px 0', color: '#374151', lineHeight: '1.5' }}>{item.description}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', fontSize: '13px', marginTop: '12px' }}>
+                  <div><strong>Gov Schedule Fee:</strong> ${parseFloat(item.schedule_fee || 0).toFixed(2)}</div>
+                  <div><strong>85% Base Rebate:</strong> ${parseFloat(item.benefit_85 || 0).toFixed(2)}</div>
                 </div>
               </div>
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
 }
+
