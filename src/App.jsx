@@ -10,7 +10,7 @@ const INITIAL_CLINIC_DATA = [
     clinic_fee: 650.00,
     medicare_rebate: 194.25,
     approx_private_health_gap: 250.00,
-    notes: "Ensure patient has been fasting for 6 hours. Inform them of separate private hospital bed/theater fees."
+    notes: "Ensure patient has been fasting for 6 hours. Inform them of separate private hospital bed fees."
   },
   {
     id: "item_02",
@@ -36,16 +36,14 @@ const INITIAL_CLINIC_DATA = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("internal"); // "internal" or "mbs_api"
+  const [activeTab, setActiveTab] = useState("internal");
   const [clinicData, setClinicData] = useState(INITIAL_CLINIC_DATA);
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  // Live API Simulation States
   const [apiResults, setApiResults] = useState([]);
   const [apiLoading, setApiLoading] = useState(false);
 
-  // Form State Fields
   const [formType, setFormType] = useState("procedure_fee");
   const [title, setTitle] = useState("");
   const [mbsNumber, setMbsNumber] = useState("");
@@ -58,23 +56,19 @@ export default function App() {
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState("");
 
-  // Asynchronous API call logic for the MBS Registry tab
   useEffect(() => {
     if (activeTab !== "mbs_api" || searchQuery.trim() === "") {
       setApiResults([]);
       return;
     }
-
     setApiLoading(true);
     const delayDebounceFn = setTimeout(() => {
-      // Mock dataset mirroring real Australian Healthcare API return object shapes
       const mockApiResponse = [
         {
           mbs_item: "30473",
           category: "Therapeutic Procedures",
           description: "Gastroscopy, insertion of a flexible fiberoptic endoscope into the stomach for diagnostic inspection.",
           schedule_fee: 194.25,
-          benefit_75: 145.70,
           benefit_85: 165.15
         },
         {
@@ -82,7 +76,6 @@ export default function App() {
           category: "Therapeutic Procedures",
           description: "Colonoscopy, fiberoptic, to examine the large bowel to the caecum, for diagnostic investigation.",
           schedule_fee: 345.10,
-          benefit_75: 258.85,
           benefit_85: 293.35
         },
         {
@@ -90,21 +83,17 @@ export default function App() {
           category: "General Surgical Procedures",
           description: "Laparoscopic sleeve gastrectomy, for treatment of clinically severe obesity.",
           schedule_fee: 865.30,
-          benefit_75: 649.00,
           benefit_85: 781.10
         }
       ].filter(item => 
         item.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
         item.mbs_item.includes(searchQuery)
       );
-
       setApiResults(mockApiResponse);
       setApiLoading(false);
-    }, 400); // 400ms debounce loop to protect data streams
-
+    }, 400);
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, activeTab]);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const newItem = {
@@ -112,7 +101,7 @@ export default function App() {
       type: formType,
       title: title,
       notes: notes,
-      keyword_tags: tags.split(',').map(tag => tag.trim().toLowerCase())
+      keyword_tags: tags.split(',').map(t => t.trim().toLowerCase())
     };
 
     if (formType === "procedure_fee") {
@@ -127,82 +116,104 @@ export default function App() {
     }
 
     setClinicData([newItem, ...clinicData]);
-    
-    // Reset Form Input Box States
     setTitle(""); setMbsNumber(""); setFee(""); setRebate(""); setGap("");
     setAddress(""); setFax(""); setForms(""); setNotes(""); setTags("");
     setShowForm(false);
   };
 
   const filteredInternalData = clinicData.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(query) ||
-      item.keyword_tags.some(tag => tag.toLowerCase().includes(query))
-    );
+    const q = searchQuery.toLowerCase();
+    return item.title.toLowerCase().includes(q) || item.keyword_tags.some(t => t.toLowerCase().includes(q));
   });
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '24px', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
-        {/* Top Branding Section */}
         <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: 0 }}>⚡ QuickClinic</h1>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px', margin: 0 }}>Internal Reference Desk Utility • Specialist Practice Support</p>
+            <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>Internal Reference Desk Utility</p>
           </div>
           {activeTab === "internal" && (
-            <button 
-              onClick={() => setShowForm(!showForm)}
-              style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}
-            >
+            <button onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
               {showForm ? '✖ Close Form' : '➕ Add Record'}
             </button>
           )}
         </header>
 
-        {/* Global Navigation Tabs Panel */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px' }}>
-          <button 
-            onClick={() => { setActiveTab("internal"); setSearchQuery(""); }}
-            style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', transition: 'all 0.2s', backgroundColor: activeTab === "internal" ? '#1e3a8a' : '#e5e7eb', color: activeTab === "internal" ? '#ffffff' : '#374151' }}
-          >
-            📋 Practice Custom Notes
-          </button>
-          <button 
-            onClick={() => { setActiveTab("mbs_api"); setSearchQuery(""); }}
-            style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', transition: 'all 0.2s', backgroundColor: activeTab === "mbs_api" ? '#059669' : '#e5e7eb', color: activeTab === "mbs_api" ? '#ffffff' : '#374151' }}
-          >
-            🌐 Live MBS National Registry
-          </button>
+          <button onClick={() => { setActiveTab("internal"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "internal" ? '#1e3a8a' : '#e5e7eb', color: activeTab === "internal" ? '#ffffff' : '#374151' }}>📋 Practice Custom Notes</button>
+          <button onClick={() => { setActiveTab("mbs_api"); setSearchQuery(""); }} style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', backgroundColor: activeTab === "mbs_api" ? '#059669' : '#e5e7eb', color: activeTab === "mbs_api" ? '#ffffff' : '#374151' }}>🌐 Live MBS Registry</button>
         </div>
 
-        {/* Administrative Data Input Form */}
         {showForm && activeTab === "internal" && (
-          <form onSubmit={handleSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px', marginBottom: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#111827', fontWeight: 'bold' }}>Add New Reference Card</h3>
-            
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#4b5563', marginBottom: '4px' }}>Data Category</label>
-              <select value={formType} onChange={(e) => setFormType(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: '#ffffff' }}>
-                <option value="procedure_fee">💰 Procedure Fee Details</option>
-                <option value="place_and_form">📍 Hospital Location & Forms</option>
-              </select>
+          <form onSubmit={handleSubmit} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+            <div style={{ marginBottom: '12px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold' }}>Category</label>
+              <select value={formType} onChange={(e) => setFormType(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px' }}><option value="procedure_fee">💰 Procedure Fee</option><option value="place_and_form">📍 Hospital Location</option></select>
             </div>
-
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#4b5563', marginBottom: '4px' }}>Title Name</label>
-              <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Gastric Bypass or St Vincent's Hospital" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
-            </div>
-
+            <div style={{ marginBottom: '12px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold' }}>Title</label><input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc', boxSizing: 'border-box' }} /></div>
             {formType === "procedure_fee" ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#4b5563', marginBottom: '4px' }}>MBS Item #</label>
-                  <input type="text" value={mbsNumber} onChange={(e) => setMbsNumber(e.target.value)} placeholder="e.g., 31575" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#4b5563', marginBottom: '4px' }}>Clinic Fee ($)</label>
-                  <input type="number" step="0.01" value={fee} onChange={(e) => setFee(e.target.value)} placeholder="800" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }} />
+                <div><label style={{ fontSize: '12px' }}>MBS #</label><input type="text" value={mbsNumber} onChange={(e) => setMbsNumber(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} /></div>
+                <div><label style={{ fontSize: '12px' }}>Fee ($)</label><input type="number" step="0.01" value={fee} onChange={(e) => setFee(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} /></div>
+                <div><label style={{ fontSize: '12px' }}>Rebate ($)</label><input type="number" step="0.01" value={rebate} onChange={(e) => setRebate(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} /></div>
+                <div><label style={{ fontSize: '12px' }}>Gap ($)</label><input type="number" step="0.01" value={gap} onChange={(e) => setGap(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} /></div>
+              </div>
+            ) : (
+              <div style={{ marginBottom: '12px' }}>
+                <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Fax" value={fax} onChange={(e) => setFax(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '8px', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Forms (separated by commas)" value={forms} onChange={(e) => setForms(e.target.value)} style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+              </div>
+            )}
+            <input type="text" placeholder="Tags (comma separated)" value={tags} onChange={(e) => setTags(e.target.value)} style={{ width: '100%', padding: '8px', marginBottom: '12px', boxSizing: 'border-box' }} />
+            <textarea placeholder="Desk Notes" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ width: '100%', padding: '8px', height: '60px', boxSizing: 'border-box' }}></textarea>
+            <button type="submit" style={{ width: '100%', backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', marginTop: '12px' }}>💾 Save to Dashboard</button>
+          </form>
+        )}
 
+        <div style={{ position: 'relative', marginBottom: '24px' }}>
+          <input type="text" style={{ width: '100%', padding: '16px', paddingLeft: '44px', borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '18px', boxSizing: 'border-box' }} placeholder={activeTab === "internal" ? "Search practice notes..." : "Query national MBS registry..."} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+          <span style={{ position: 'absolute', left: '16px', top: '18px' }}>🔍</span>
+        </div>
+
+        {activeTab === "internal" ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {filteredInternalData.map((item) => (
+              <div key={item.id} style={{ backgroundColor: '#ffffff', border: '1px solid #f3f4f6', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '4px', backgroundColor: item.type === 'procedure_fee' ? '#eff6ff' : '#ecfdf5', color: item.type === 'procedure_fee' ? '#1d4ed8' : '#047857' }}>{item.type === 'procedure_fee' ? '💰 Fee' : '📍 Location'}</span>
+                <h3 style={{ margin: '8px 0', fontSize: '20px' }}>{item.title}</h3>
+                {item.type === 'procedure_fee' ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', textAlign: 'center' }}>
+                    <div><span style={{ fontSize: '12px', color: '#9ca3af' }}>Fee</span><div>${item.clinic_fee.toFixed(2)}</div></div>
+                    <div><span style={{ fontSize: '12px', color: '#9ca3af' }}>Rebate</span><div style={{ color: '#059669' }}>${item.medicare_rebate.toFixed(2)}</div></div>
+                    <div><span style={{ fontSize: '12px', color: '#2563eb' }}>Gap</span><div style={{ color: '#1d4ed8', fontWeight: 'bold' }}>${item.approx_private_health_gap.toFixed(2)}</div></div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '14px', color: '#4b5563' }}><p>🏥 Address: {item.address}</p><p>📠 Fax: {item.fax_number}</p></div>
+                )}
+                <div style={{ backgroundColor: '#fefce8', padding: '12px', borderRadius: '8px', marginTop: '12px', fontSize: '14px' }}><strong>Protocol:</strong> {item.notes}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {apiLoading && <p style={{ textAlign: 'center' }}>Querying registry servers...</p>}
+            {apiResults.map((item) => (
+              <div key={item.mbs_item} style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '24px' }}>
+                <strong>🟢 MBS Item #{item.mbs_item}</strong>
+                <p style={{ fontSize: '14px', margin: '8px 0' }}>{item.description}</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '12px', backgroundColor: '#f9fafb', fontSize: '13px' }}>
+                  <div>Fee: ${item.schedule_fee.toFixed(2)}</div>
+                  <div>Rebate (85%): ${item.benefit_85.toFixed(2)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
