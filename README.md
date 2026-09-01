@@ -1,6 +1,6 @@
 # ⚡ QuickClinic
 
-A lightweight, high-speed internal desktop utility designed for medical receptionists and specialist practices to eliminate physical paper binders, streamline fee lookups, and centralize custom practice protocols.
+A lightweight, high-speed internal desktop utility designed for medical receptionists and specialist practices to eliminate physical paper binders, streamline fee lookups, and centralise custom practice protocols.
 
 Live demo: https://quick-clinic-lilac.vercel.app/
 
